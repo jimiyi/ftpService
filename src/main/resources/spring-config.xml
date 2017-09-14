@@ -1,0 +1,54 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- import property file -->
+    <context:property-placeholder location="classpath:application.properties" />
+    <!-- auto scan config -->
+    <context:component-scan base-package="com.best.oasis">
+        <context:exclude-filter type="annotation"
+                                expression="org.springframework.web.bind.annotation.RestController" />
+    </context:component-scan>
+
+    <bean id="ftpClientConfig" class="com.best.oasis.ftp.FTPClientConfig">
+        <property name="host" value="${ftp.address}"/>
+        <property name="port" value="${ftp.port}"/>
+        <property name="username" value="${ftp.username}"/>
+        <property name="password" value="${ftp.password}"/>
+        <property name="encoding" value="utf-8"/>
+        <property name="passiveMode" value="false"/>
+        <property name="clientTimeout" value="30000"/>
+    </bean>
+
+    <bean id="ftpClientFactory" class="com.best.oasis.ftp.FTPClientFactory">
+        <constructor-arg index="0" ref="ftpClientConfig"/>
+    </bean>
+
+    <bean id="ftpClientPool" class="com.best.oasis.ftp.FTPClientPool" >
+        <constructor-arg index="0" ref="ftpClientFactory" />
+    </bean>
+
+    <!-- 定时任务 -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="ftpClientKeepAliveJob"></property>
+        <property name="targetMethod" value="run"></property>
+        <property name="concurrent" value="false"></property>
+        <!-- concurrent : false表示等上一个任务执行完后再开启新的任务 -->
+    </bean>
+    <!-- 配置任务高度的的时间/周期 -->
+    <bean id="ftpClientKeepAliveTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail"></property>
+        <property name="cronExpression" value="0 */1 * * * ?"></property>
+        <property name="startDelay" value="3000"></property>
+    </bean>
+    <!-- 配置触发器 -->
+    <bean id="schedulerFactoryBean"  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="ftpClientKeepAliveTrigger"/>
+            </list>
+        </property>
+    </bean>
+</beans>
