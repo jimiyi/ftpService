@@ -26,6 +26,13 @@ public class BestFileController extends BaseController {
     @Autowired
     FTPService ftpService;
 
+    /**
+     * 上传文件至ftp服务器
+     * @param storePath
+     * @param uploadFiles
+     * @param uploadFileName
+     * @return
+     */
     @RequestMapping(value = "uploadFile")
     public Map<String, Object> uploadFile(@RequestParam("storePath") String storePath, @RequestParam("file") MultipartFile[] uploadFiles
             , @RequestParam(value = "uploadFileName") String uploadFileName) {
@@ -45,6 +52,12 @@ public class BestFileController extends BaseController {
         }
     }
 
+    /**
+     * 追加文件内容到远程ftp上的文件
+     * @param remoteFile
+     * @param localFile
+     * @return
+     */
     @RequestMapping(value = "appendFile")
     public Map<String, Object> appendFile(@RequestParam(value = "remoteFile") String remoteFile, @RequestParam("local") MultipartFile localFile) {
         try {
@@ -60,6 +73,12 @@ public class BestFileController extends BaseController {
         }
     }
 
+    /**
+     * 下载文件
+     * @param path
+     * @param fileName
+     * @param response
+     */
     @RequestMapping(value = "downloadFile")
     public void downloadFile(@RequestParam("path") String path, @RequestParam("fileName") String fileName, HttpServletResponse response) {
         try {
@@ -73,6 +92,11 @@ public class BestFileController extends BaseController {
         }
     }
 
+    /**
+     * 删除文件
+     * @param remoteFile
+     * @return
+     */
     @RequestMapping(value = "deleteFile")
     public Map<String, Object> deleteFile(@RequestParam(value = "remoteFile") String remoteFile){
         try {
